@@ -26,6 +26,7 @@ const ApiKeyHistory: React.FC<{ keys: ApiKey[] }> = ({ keys }) => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Key</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Generated On</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Calls</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
@@ -34,6 +35,11 @@ const ApiKeyHistory: React.FC<{ keys: ApiKey[] }> = ({ keys }) => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-300">{maskKey(apiKey.key)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{new Date(apiKey.createdAt).toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{apiKey.callCount.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    <button onClick={() => copyKey(apiKey.key)} className="p-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500 transition-colors" aria-label="Copy API Key">
+                      {copiedKeys.has(apiKey.key) ? <CheckIcon className="h-5 w-5 text-green-400" /> : <CopyIcon className="h-5 w-5 text-gray-400" />}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -48,6 +54,7 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ sessionToken }) => {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [mostRecentKey, setMostRecentKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedKeys, setCopiedKeys] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,6 +104,16 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ sessionToken }) => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const copyKey = (key: string) => {
+    navigator.clipboard.writeText(key);
+    setCopiedKeys(prev => new Set(prev).add(key));
+    setTimeout(() => setCopiedKeys(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(key);
+      return newSet;
+    }), 2000);
   };
   
   if (isLoading) {

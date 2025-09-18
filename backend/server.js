@@ -103,9 +103,9 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/jobs', authMiddleware, async (req, res) => {
+app.get('/api/jobs', apiKeyMiddleware, async (req, res) => {
   try {
-    const jobs = await apiService.getJobs(req.user.userId);
+    const jobs = await apiService.getJobs(req.userId);
     res.json(jobs);
   } catch (error) {
     console.error('Error fetching jobs:', error);
