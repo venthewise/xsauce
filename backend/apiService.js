@@ -9,11 +9,22 @@ const JobStatus = {
 
 // --- User Management ---
 export const findOrCreateUser = async (email) => {
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('users')
-    .upsert({ email }, { onConflict: 'email' })
-    .select()
+    .select('*')
+    .eq('email', email)
     .single();
+
+  if (error && error.code === 'PGRST116') { // not found
+    const { data: newData, error: insertError } = await supabase
+      .from('users')
+      .insert({ email })
+      .select()
+      .single();
+    if (insertError) throw insertError;
+    return newData;
+  }
+
   if (error) throw error;
   return data;
 };
