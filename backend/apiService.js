@@ -1,4 +1,5 @@
 import { supabase } from './server.js';
+import { randomUUID } from 'crypto';
 
 const JobStatus = {
   PENDING: 'pending',
@@ -18,7 +19,7 @@ export const findOrCreateUser = async (email) => {
   if (error && error.code === 'PGRST116') { // not found
     const { data: newData, error: insertError } = await supabase
       .from('users')
-      .insert({ email })
+      .insert({ id: randomUUID(), email })
       .select()
       .single();
     if (insertError) throw insertError;
