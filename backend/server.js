@@ -67,23 +67,43 @@ app.post('/api/auth/google', async (req, res) => {
 // All routes below this line require a valid session token from the authMiddleware.
 
 app.get('/api/keys', authMiddleware, async (req, res) => {
-  const keys = await apiService.getApiKeys(req.user.userId);
-  res.json(keys);
+  try {
+    const keys = await apiService.getApiKeys(req.user.userId);
+    res.json(keys);
+  } catch (error) {
+    console.error('Error fetching API keys:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 app.post('/api/keys', authMiddleware, async (req, res) => {
-  const newKey = await apiService.generateApiKey(req.user.userId);
-  res.status(201).json(newKey);
+  try {
+    const newKey = await apiService.generateApiKey(req.user.userId);
+    res.status(201).json(newKey);
+  } catch (error) {
+    console.error('Error generating API key:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 app.get('/api/stats', authMiddleware, async (req, res) => {
-  const stats = await apiService.getStats(req.user.userId);
-  res.json(stats);
+  try {
+    const stats = await apiService.getStats(req.user.userId);
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 app.get('/api/jobs', authMiddleware, async (req, res) => {
-  const jobs = await apiService.getJobs(req.user.userId);
-  res.json(jobs);
+  try {
+    const jobs = await apiService.getJobs(req.user.userId);
+    res.json(jobs);
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 
