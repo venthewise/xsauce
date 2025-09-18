@@ -39,7 +39,7 @@ export const generateApiKey = async (userId) => {
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return { key: data.key, createdAt: new Date(data.created_at), callCount: data.call_count };
 };
 
 export const getApiKeys = async (userId) => {
@@ -48,7 +48,7 @@ export const getApiKeys = async (userId) => {
     .select('*')
     .eq('user_id', userId);
   if (error) throw error;
-  return data;
+  return data.map(key => ({ key: key.key, createdAt: new Date(key.created_at), callCount: key.call_count }));
 };
 
 // --- Stats and Jobs ---
@@ -82,5 +82,5 @@ export const getJobs = async (userId) => {
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return data;
+  return data.map(job => ({ id: job.id, fileName: job.file_name, status: job.status, createdAt: job.created_at, outputUrl: job.output_url }));
 };
