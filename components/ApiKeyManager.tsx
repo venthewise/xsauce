@@ -10,7 +10,7 @@ interface ApiKeyManagerProps {
   sessionToken: string;
 }
 
-const ApiKeyHistory: React.FC<{ keys: ApiKey[] }> = ({ keys }) => {
+const ApiKeyHistory: React.FC<{ keys: ApiKey[], copiedKeys: Set<string>, copyKey: (key: string) => void }> = ({ keys, copiedKeys, copyKey }) => {
   if (keys.length === 0) {
     return null;
   }
@@ -146,7 +146,7 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ sessionToken }) => {
           {apiKeys.length > 0 ? 'Generate New Key' : 'Generate API Key'}
         </button>
       </div>
-      <ApiKeyHistory keys={apiKeys} />
+      <ApiKeyHistory keys={apiKeys} copiedKeys={copiedKeys} copyKey={copyKey} />
     </div>
   );
 };
