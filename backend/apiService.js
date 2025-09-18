@@ -121,6 +121,7 @@ export const processCropJob = async (jobId, startTime, endTime) => {
     ffmpeg(inputPath)
       .setStartTime(parseFloat(startTime))
       .setDuration(duration)
+      .videoFilters('crop=ih*9/16:ih')
       .output(outputPath)
       .on('end', async () => {
         await supabase
