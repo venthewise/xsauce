@@ -1,0 +1,5 @@
+{
+  "name": "X-SAUCE Dashboard",
+  "description": "A dashboard for developers to manage API keys and monitor usage for the X-SAUCE API Service.",
+  "requestFramePermissions": []
+}
