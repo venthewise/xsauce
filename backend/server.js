@@ -4,7 +4,9 @@ import dotenv from 'dotenv';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import { createClient } from '@supabase/supabase-js';
+import multer from 'multer';
 import { authMiddleware } from './authMiddleware.js';
+import { apiKeyMiddleware } from './apiKeyMiddleware.js';
 import * as apiService from './apiService.js';
 
 dotenv.config({ path: '../.env.local' });
@@ -12,6 +14,8 @@ dotenv.config({ path: '../.env.local' });
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 export const supabase = createClient(supabaseUrl, supabaseKey);
+
+const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -23,6 +27,7 @@ app.use(cors({
   origin: '*' // In production, you should restrict this to your frontend's URL
 }));
 app.use(express.json());
+app.use('/outputs', express.static('outputs'));
 
 // --- Public Routes ---
 
@@ -102,6 +107,21 @@ app.get('/api/jobs', authMiddleware, async (req, res) => {
     res.json(jobs);
   } catch (error) {
     console.error('Error fetching jobs:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// --- API Key Authenticated Routes ---
+
+app.post('/api/crop', apiKeyMiddleware, upload.single('video'), async (req, res) => {
+  try {
+    const { startTime, endTime } = req.body;
+    const job = await apiService.createCropJob(req.userId, req.file.filename);
+    // Start processing asynchronously
+    apiService.processCropJob(job.id, startTime, endTime);
+    res.status(201).json({ jobId: job.id, status: 'processing' });
+  } catch (error) {
+    console.error('Crop request error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

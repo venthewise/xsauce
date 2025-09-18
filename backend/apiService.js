@@ -1,5 +1,8 @@
 import { supabase } from './server.js';
 import { randomUUID } from 'crypto';
+import ffmpeg from 'fluent-ffmpeg';
+import fs from 'fs';
+import path from 'path';
 
 const JobStatus = {
   PENDING: 'pending',
@@ -83,4 +86,57 @@ export const getJobs = async (userId) => {
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data.map(job => ({ id: job.id, fileName: job.file_name, status: job.status, createdAt: job.created_at, outputUrl: job.output_url }));
+};
+
+export const createCropJob = async (userId, fileName) => {
+  const jobId = randomUUID();
+  const { data, error } = await supabase
+    .from('jobs')
+    .insert({ id: jobId, user_id: userId, file_name: fileName, status: 'processing', created_at: new Date() })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+export const processCropJob = async (jobId, startTime, endTime) => {
+  try {
+    const { data: job, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+    if (error) throw error;
+
+    const inputPath = path.join('uploads', job.file_name);
+    const outputPath = path.join('outputs', `${jobId}.mp4`);
+
+    // Ensure output directory exists
+    if (!fs.existsSync('outputs')) {
+      fs.mkdirSync('outputs');
+    }
+
+    const duration = parseFloat(endTime) - parseFloat(startTime);
+
+    ffmpeg(inputPath)
+      .setStartTime(parseFloat(startTime))
+      .setDuration(duration)
+      .output(outputPath)
+      .on('end', async () => {
+        await supabase
+          .from('jobs')
+          .update({ status: 'completed', output_url: `/outputs/${jobId}.mp4` })
+          .eq('id', jobId);
+      })
+      .on('error', async (err) => {
+        console.error('FFmpeg error:', err);
+        await supabase
+          .from('jobs')
+          .update({ status: 'failed' })
+          .eq('id', jobId);
+      })
+      .run();
+  } catch (error) {
+    console.error('Process crop job error:', error);
+  }
 };
