@@ -24,7 +24,9 @@ const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const client = new OAuth2Client(CLIENT_ID);
 
 app.use(cors({
-  origin: '*' // In production, you should restrict this to your frontend's URL
+  origin: '*', // In production, restrict to your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use('/outputs', express.static('outputs'));
