@@ -3,10 +3,15 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
+import { createClient } from '@supabase/supabase-js';
 import { authMiddleware } from './authMiddleware.js';
 import * as apiService from './apiService.js';
 
 dotenv.config({ path: '../.env.local' });
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -45,7 +50,7 @@ app.post('/api/auth/google', async (req, res) => {
       return res.status(403).json({ message: 'Access Denied. Please sign in with god.' });
     }
 
-    const user = apiService.findOrCreateUser(email);
+    const user = await apiService.findOrCreateUser(email);
 
     // Create a session token (JWT) for the frontend
     const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '8h' });
@@ -61,23 +66,23 @@ app.post('/api/auth/google', async (req, res) => {
 // --- Protected Routes ---
 // All routes below this line require a valid session token from the authMiddleware.
 
-app.get('/api/keys', authMiddleware, (req, res) => {
-  const keys = apiService.getApiKeys(req.user.userId);
+app.get('/api/keys', authMiddleware, async (req, res) => {
+  const keys = await apiService.getApiKeys(req.user.userId);
   res.json(keys);
 });
 
-app.post('/api/keys', authMiddleware, (req, res) => {
-  const newKey = apiService.generateApiKey(req.user.userId);
+app.post('/api/keys', authMiddleware, async (req, res) => {
+  const newKey = await apiService.generateApiKey(req.user.userId);
   res.status(201).json(newKey);
 });
 
-app.get('/api/stats', authMiddleware, (req, res) => {
-  const stats = apiService.getStats(req.user.userId);
+app.get('/api/stats', authMiddleware, async (req, res) => {
+  const stats = await apiService.getStats(req.user.userId);
   res.json(stats);
 });
 
-app.get('/api/jobs', authMiddleware, (req, res) => {
-  const jobs = apiService.getJobs(req.user.userId);
+app.get('/api/jobs', authMiddleware, async (req, res) => {
+  const jobs = await apiService.getJobs(req.user.userId);
   res.json(jobs);
 });
 

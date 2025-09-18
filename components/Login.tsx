@@ -33,7 +33,7 @@ interface LoginProps {
 
 const GOOGLE_CLIENT_ID = "870686277575-cg11gibqnkk1efpteetibmp095lh43hl.apps.googleusercontent.com";
 // The backend URL. In production, this would be an environment variable.
-const API_URL = 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Login: React.FC<LoginProps> = ({ onLoginSuccess, onLoginFailure, error }) => {
   const googleButtonRef = useRef<HTMLDivElement>(null);

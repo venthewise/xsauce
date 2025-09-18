@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CropJob, JobStatus } from '../types';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const StatusBadge: React.FC<{ status: JobStatus }> = ({ status }) => {
   const baseClasses = 'px-2.5 py-0.5 text-xs font-medium rounded-full inline-block';

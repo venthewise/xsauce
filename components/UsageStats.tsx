@@ -3,7 +3,7 @@ import { ChartBarIcon } from './icons/ChartBarIcon';
 import { CubeIcon } from './icons/CubeIcon';
 import { DatabaseIcon } from './icons/DatabaseIcon';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface Stat {
   title: string;
