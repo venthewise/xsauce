@@ -31,7 +31,7 @@ interface LoginProps {
   error: string | null;
 }
 
-const GOOGLE_CLIENT_ID = "870686277575-cg11gibqnkk1efpteetibmp095lh43hl.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "870686277575-cg11gibqnkk1efpteetibmp095lh43hl.apps.googleusercontent.com";
 // The backend URL. In production, this would be an environment variable.
 const API_URL = import.meta.env.VITE_API_URL;
 
