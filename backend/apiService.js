@@ -99,6 +99,17 @@ export const createCropJob = async (userId, fileName) => {
   return data;
 };
 
+export const createRemoveBackgroundJob = async (userId, fileName) => {
+  const jobId = randomUUID();
+  const { data, error } = await supabase
+    .from('jobs')
+    .insert({ id: jobId, user_id: userId, file_name: fileName, status: 'processing', created_at: new Date() })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
 export const processCropJob = async (jobId, startTime, endTime) => {
   try {
     const { data: job, error } = await supabase
@@ -139,5 +150,44 @@ export const processCropJob = async (jobId, startTime, endTime) => {
       .run();
   } catch (error) {
     console.error('Process crop job error:', error);
+  }
+};
+
+export const processRemoveBackgroundJob = async (jobId) => {
+  try {
+    const { data: job, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+    if (error) throw error;
+
+    const inputPath = path.join('uploads', job.file_name);
+    const outputPath = path.join('outputs', `${jobId}.mp4`);
+
+    // Ensure output directory exists
+    if (!fs.existsSync('outputs')) {
+      fs.mkdirSync('outputs');
+    }
+
+    ffmpeg(inputPath)
+      .videoFilters('chromakey=0x00FF00:0.4:0.2') // Assuming green screen
+      .output(outputPath)
+      .on('end', async () => {
+        await supabase
+          .from('jobs')
+          .update({ status: 'completed', output_url: `/outputs/${jobId}.mp4` })
+          .eq('id', jobId);
+      })
+      .on('error', async (err) => {
+        console.error('FFmpeg error:', err);
+        await supabase
+          .from('jobs')
+          .update({ status: 'failed' })
+          .eq('id', jobId);
+      })
+      .run();
+  } catch (error) {
+    console.error('Process remove background job error:', error);
   }
 };

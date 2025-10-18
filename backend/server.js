@@ -103,9 +103,9 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/jobs', authMiddleware, async (req, res) => {
+app.get('/api/jobs', apiKeyMiddleware, async (req, res) => {
   try {
-    const jobs = await apiService.getJobs(req.user.userId);
+    const jobs = await apiService.getJobs(req.userId);
     res.json(jobs);
   } catch (error) {
     console.error('Error fetching jobs:', error);
@@ -124,6 +124,18 @@ app.post('/api/crop', apiKeyMiddleware, upload.single('video'), async (req, res)
     res.status(201).json({ jobId: job.id, status: 'processing' });
   } catch (error) {
     console.error('Crop request error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.post('/api/remove-background', apiKeyMiddleware, upload.single('video'), async (req, res) => {
+  try {
+    const job = await apiService.createRemoveBackgroundJob(req.userId, req.file.filename);
+    // Start processing asynchronously
+    apiService.processRemoveBackgroundJob(job.id);
+    res.status(201).json({ jobId: job.id, status: 'processing' });
+  } catch (error) {
+    console.error('Remove background request error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
